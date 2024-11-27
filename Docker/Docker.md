@@ -10,3 +10,5 @@ https://www.youtube.com/watch?v=O8N1lvkIjig&t=95s
 
 #### посмотреть группы пользователя
 - `id username`
+
+
