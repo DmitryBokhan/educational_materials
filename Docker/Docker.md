@@ -99,3 +99,30 @@ CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O
 - `docker exec -it [CONTAINER ID либо NAME] /bin/bash` 
 - `docker exec -it [CONTAINER ID либо NAME] bash` - можно и так
 ---
+
+### Управление портами: Port Mapping
+
+Посмотреть все порты сервера:
+- станавливаем утилиту по инструкции, например такой: https://cloudscope.in/install-use-netstat/
+- `netstat -tulpen` - список открытых портов
+````
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       User       Inode      PID/Program name
+tcp        0      0 0.0.0.0:443             0.0.0.0:*               LISTEN      0          2275429    269399/docker-proxy
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      0          2527133    284699/docker-proxy
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      0          2275415    269385/docker-proxy
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      101        15840      402/systemd-resolve
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      0          22901      630/sshd: /usr/sbin
+tcp6       0      0 :::443                  :::*                    LISTEN      0          2275436    269407/docker-proxy
+tcp6       0      0 :::3306                 :::*                    LISTEN      0          2527140    284705/docker-proxy
+tcp6       0      0 :::80                   :::*                    LISTEN      0          2275422    269391/docker-proxy
+tcp6       0      0 :::22                   :::*                    LISTEN      0          22903      630/sshd: /usr/sbin
+udp        0      0 127.0.0.53:53           0.0.0.0:*                           101        15839      402/systemd-resolve
+udp        0      0 10.129.0.7:68           0.0.0.0:*                           100        2486793    482/systemd-network
+
+````
+---
+Задать порты контейнеру
+- `docker run -d --name MyNginx -p 80:80 nginx`
+- порт сервер 80 пробросит запрос в контейнер на порт 80
+- можно пробросить несколько портов  `docker run -d --name MyNginx -p 80:80 -p 443:443 nginx`
