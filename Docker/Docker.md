@@ -1,17 +1,17 @@
 ### Курс по Docker
 https://www.youtube.com/watch?v=O8N1lvkIjig&t=95s
 
-00:00:00 | Intro
-00:01:35 | Основы Docker.
-00:19:30 | Установка Docker в Linux и Windows.
-00:25:40 | Основные команды.
-00:54:55 | Управление портами: Port Mapping.
-01:08:55 | Переменные в Docker: Environment Variables.
-01:20:20 | Постоянные данные: Docker Volumes.
-01:48:41 | Сети в Docker. Network.
-02:30:11 | Создание своих контейнеров. Dockerfile.
-03:40:59 | Docker Compose. Применение.
-04:32:28 | Portainer – Web UI для управления Docker.
+- 00:00:00 | Intro
+- 00:01:35 | Основы Docker.
+- 00:19:30 | Установка Docker в Linux и Windows.
+- 00:25:40 | Основные команды.
+- 00:54:55 | Управление портами: Port Mapping.
+- 01:08:55 | Переменные в Docker: Environment Variables.
+- 01:20:20 | Постоянные данные: Docker Volumes.
+- 01:48:41 | Сети в Docker. Network.
+- 02:30:11 | Создание своих контейнеров. Dockerfile.
+- 03:40:59 | Docker Compose. Применение.
+- 04:32:28 | Portainer – Web UI для управления Docker.
 
 ---
 
@@ -19,7 +19,8 @@ https://www.youtube.com/watch?v=O8N1lvkIjig&t=95s
 - `useradd -m -s /bin/bash username`
 
 #### добавить пользователя в группу docker
-- `usermo -aG docker username`
+- `usermod -aG docker username`
+- Затем перезайти в систему или выполнить: `newgrp docker`
 
 #### посмотреть группы пользователя
 - `id username`
@@ -51,7 +52,7 @@ docker rm [IMAGE ID либо NAME контейнера]
 ---
 Список images 
 ````
-docker images
+docker images ls
 ````
 Удалить image
 ````
@@ -116,7 +117,7 @@ CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O
 ### Управление портами: Port Mapping
 
 Посмотреть все порты сервера:
-- станавливаем утилиту по инструкции, например такой: https://cloudscope.in/install-use-netstat/
+- устанавливаем утилиту по инструкции, например такой: https://cloudscope.in/install-use-netstat/
 - `netstat -tulpen` - список открытых портов
 ````
 Active Internet connections (only servers)
@@ -155,3 +156,43 @@ udp        0      0 10.129.0.7:68           0.0.0.0:*                           
 Существует три варианта монтирования данных
 
 ![img.png](img.png)
+
+- посмотреть список Volumes: `docker volume ls`
+- есть способ создать свой volume, это делается командой: `docker volume create my_volume`
+- удалить volume: `docker volume rm my_volume`
+
+
+---
+
+### Docker Network (Сетевой интерфейс)
+При запуске контейнера мы получаем интерфейс c 3 (тремя) типами сети (драйвера):
+- "bridge" docker0: 172.17.0.0/16 (по умолчанию)
+- "host" ServerIP(10.15.11.12)
+- "none"
+
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
+
+![img_4.png](img_4.png)
+
+- `docker network ls` - покажет список сетей в контейнере
+
+#### Создание своей сети
+
+- `docker network create myNet01` - так мы создадим сеть с именем myNet01 и драйвером bridge
+
+#### Получить информацию о сети 
+
+- `docker network inspect myNet01`
+
+![img_3.png](img_3.png)
+
+- в детализации есть IP сети (по умолчанию)
+
+#### Задать свой IP для сети
+- `docker network create -d bridge --subnet 192.168.10.0/24 --gateway 192.168.10.1 myNet192`
+![img_5.png](img_5.png)
+
+#### Удаление сетей 
+- `docker network rm myNet` - указываем имя сети (в примере myNet) или id
