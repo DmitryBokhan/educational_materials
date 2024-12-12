@@ -90,7 +90,8 @@ docker rmi [IMAGE ID]
 - `docker kill [CONTAINER ID либо NAME]`
 ---
 Ключи:
-- `-d`   - запустить контейнер в фоновом режиме (detach mode)
+- `-d` - запустить контейнер в фоновом режиме (detach mode)
+- `-it` - интерактивный режим
 - `--rm` - после остановки контейнера он автоматически удаляется 
 - `--name` - позволяет задать имя контейнеру
 -  Пример: `docker run -d --rm --name My-container ubuntu:20.04`
@@ -196,3 +197,142 @@ udp        0      0 10.129.0.7:68           0.0.0.0:*                           
 
 #### Удаление сетей 
 - `docker network rm myNet` - указываем имя сети (в примере myNet) или id
+
+## Создание Dockerfile
+![img_6.png](img_6.png)
+
+![img_7.png](img_7.png)
+
+- создаем файл `touch dockerfile`
+````
+FROM ubuntu:22.04
+CMD echo "Hello my FIRST Docker"
+````
+- запускаем сборку `docker build -t myimage:v01.`
+
+- проверяем наличие нового image `docker images`
+````
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+nginx        latest    66f8bdd3810c   7 days ago     192MB
+<none>       <none>    e620144c88cf   2 months ago   77.9MB
+````
+- присваиваем TAG `docker tag e620144c88cf mydocker:v01` 
+````
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+nginx        latest    66f8bdd3810c   7 days ago     192MB
+mydocker     v01       e620144c88cf   2 months ago   77.9MB
+````
+- теперь запустим наш новый образ:
+````
+docker run --rm --name mydocker mydocker:v01
+````
+- Результат: `Hello my FIRST Docker`
+
+#### Запустить контейнер и войти в него
+- `docker run -it --rm --name mydocker myimage:v01 /bin/bash`
+
+#### Нюансы
+- `CMD`  - эти команды можно изменять 
+- `ENTRYPOINT`  - фиксированная команда (это изменять не можем)
+- для запуска команды нужно писать в dockerfile так: `CMD ["echo", "Hello my FIRST Docker"]`
+- далее собираем образ: `docker build -t myimage:v03`
+- и запускаем образ: `docker run --rm --name mydocker myimage:v03`
+
+#### Инспектирование образа
+````
+docker images inspect <id или имя образа>
+````
+
+#### Добавим в наш образ Nginx
+
+```` dockerfile
+FROM ubuntu:22.04
+LABLE autor=iteush
+RUN apt-get update
+RUN apt-get install nginx -y
+CMD echo "Hello my FIRST Docker"
+````
+ - ключ `-y` разрешает установку без подтверждения действий!!!
+
+- Чтобы запустить nginx, нужно в dockerfile указать команду, предписанную документацией:
+````dockerfile
+CMD ["nginx","-g","daemon off;"]
+````
+- теперь dockerfile будет выглядеть так:
+``` dockerfile
+FROM ubuntu:22.04
+LABLE autor=iteush
+RUN apt-get update
+RUN apt-get install nginx -y
+CMD ["nginx","-g","daemon off;"]
+````
+- соберем новый образ 
+````
+docker build -t myimage-nginx:v01 .
+````
+- `-t` - говорит о том, что мы хотим присвоить имя образу
+- `myimage-nginx:v01` - это имя и тег (версия) которые мы хотим присвоить образу  
+- запустим 
+````
+docker run -d --rm --name mydocker myimage-nginx:v01
+````
+- подключимся к контейнеру и посмотри что в нем работает 
+````
+docker exec -it mydocker /bin/bash
+ps xa
+````
+- команда `ps xa` покажет что работает в контейнере
+````bash
+root@4cf023f45389:/# ps xa
+    PID TTY      STAT   TIME COMMAND
+      1 ?        Ss     0:00 nginx: master process nginx -g daemon off;
+      7 ?        S      0:00 nginx: worker process
+      8 ?        S      0:00 nginx: worker process
+      9 pts/0    Ss     0:00 /bin/bash
+     20 pts/0    R+     0:00 ps xa
+````
+- мы видим что в контейнере запущен nginx, но без портов, что не позволит нам достучаться до контейнера. Исправим это!
+
+````bash
+docker run -d --rm --name mydocker -p80:80 test:v01
+````
+- можно задать порт прямо в dockerfile, используя параметр EXPOSE 
+
+```dockerfile
+FROM ubuntu:22.04
+LABEL autor=iteush
+RUN apt-get update
+RUN apt-get install nginx -y
+EXPOSE 80
+EXPOSE 443/tcp
+CMD ["nginx","-g","daemon off;"]
+
+```
+- так будут открыты два порта в контейнере 80 и 443 (это внутренние порты контейнера)
+- теперь пробросим внешние, для этого добавим ключ `-P`
+```
+docker run -d --rm --name mydocker -P mydockerx:v02
+```
+````
+iteush@my-vm-1:~/docker$ docker run -d --rm --name mydocker -P  mydockerx:v02
+79a5efa23dd69e3ce46cb782a30fc75834f6594b4f5d9524460d840b5d51bf62
+iteush@my-vm-1:~/docker$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS                                                                                    NAMES
+79a5efa23dd6   mydockerx:v02   "nginx -g 'daemon of…"   16 seconds ago   Up 15 seconds   0.0.0.0:32768->80/tcp, [::]:32768->80/tcp, 0.0.0.0:32769->443/tcp, [::]:32769->443/tcp   mydocker
+````
+- внешние порты проброшены! но они выбраны случайным образом
+
+# Docker Compose
+- Пример переноса команды для запуска контейнера из командной строки в docker-compose.yml
+![img_9.png](img_9.png)
+
+![img_10.png](img_10.png)
+
+![img_11.png](img_11.png)
+
+- `` - 
+- `docker compose up -d` - запустить файл docker-compose.yml в (детеч режиме)
+- `docker compose logs -f` - просмотр логов в запущенном контейнере 
+- `docker compose stop` - остановит контейнер созданный в этом каталоге 
+
+

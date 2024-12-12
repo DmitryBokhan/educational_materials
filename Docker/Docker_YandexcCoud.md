@@ -45,3 +45,7 @@ https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-c
 
 7. Запускаем проект в Docker
    docker-compose -f docker-compose.prod.yml up -d 
+
+8. Дать разрешение на папку
+- `sudo chown -R www-data:www-data /var/www/api-sd.bakra-auto.ru/storage`
+- `sudo chmod -R 775 /var/www/api-sd.bakra-auto.ru/storage`
