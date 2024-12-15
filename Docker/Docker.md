@@ -156,7 +156,7 @@ udp        0      0 10.129.0.7:68           0.0.0.0:*                           
 ## Volumes (Постоянные данные)
 Существует три варианта монтирования данных
 
-![img.png](img.png)
+![img.png](img/img.png)
 
 - посмотреть список Volumes: `docker volume ls`
 - есть способ создать свой volume, это делается командой: `docker volume create my_volume`
@@ -171,11 +171,11 @@ udp        0      0 10.129.0.7:68           0.0.0.0:*                           
 - "host" ServerIP(10.15.11.12)
 - "none"
 
-![img_1.png](img_1.png)
+![img_1.png](img/img_1.png)
 
-![img_2.png](img_2.png)
+![img_2.png](img/img_2.png)
 
-![img_4.png](img_4.png)
+![img_4.png](img/img_4.png)
 
 - `docker network ls` - покажет список сетей в контейнере
 
@@ -187,21 +187,21 @@ udp        0      0 10.129.0.7:68           0.0.0.0:*                           
 
 - `docker network inspect myNet01`
 
-![img_3.png](img_3.png)
+![img_3.png](img/img_3.png)
 
 - в детализации есть IP сети (по умолчанию)
 
 #### Задать свой IP для сети
 - `docker network create -d bridge --subnet 192.168.10.0/24 --gateway 192.168.10.1 myNet192`
-![img_5.png](img_5.png)
+![img_5.png](img/img_5.png)
 
 #### Удаление сетей 
 - `docker network rm myNet` - указываем имя сети (в примере myNet) или id
 
 ## Создание Dockerfile
-![img_6.png](img_6.png)
+![img_6.png](img/img_6.png)
 
-![img_7.png](img_7.png)
+![img_7.png](img/img_7.png)
 
 - создаем файл `touch dockerfile`
 ````
@@ -324,11 +324,11 @@ CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS 
 
 # Docker Compose
 - Пример переноса команды для запуска контейнера из командной строки в docker-compose.yml
-![img_9.png](img_9.png)
+![img_9.png](img/img_9.png)
 
-![img_10.png](img_10.png)
+![img_10.png](img/img_10.png)
 
-![img_11.png](img_11.png)
+![img_11.png](img/img_11.png)
 
 - `` - 
 - `docker compose up -d` - запустить файл docker-compose.yml в (детеч режиме)
@@ -336,3 +336,33 @@ CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS 
 - `docker compose stop` - остановит контейнер созданный в этом каталоге 
 
 
+# Portainer (управление контейнерами)
+- установка
+  https://docs.portainer.io/start/install-ce/server/docker/linux
+
+### Steps
+- переходим в каталог `cd /opt`
+- создаем каталог `mkdir portainer`
+- переходим в каталог и добавляем volume:
+```bash
+docker volume create portainer_data
+```
+- создаем `dicker-compose.yml` файл со следующим содержимым:
+```bash
+services:
+  portainer:
+    image: portainer/portainer-ce:2.21.4
+    container_name: portainer
+  environment:
+    - TZ=Europe/Moscow
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /opt/portainer/portainer_data:/data
+  ports:
+    - "8000:8000"
+    - "9443:9443"
+  restart: always
+``` 
+- запускаем сборку `docker compose up -d`
+
+- переходим `https://localhost:9443`
